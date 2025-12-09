@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ماستر ريم | أسطورة الدراجات النارية</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="overlay-glow"></div>
+
+    <header class="main-header">
+        <div class="logo">
+            <h1><i class="fas fa-motorcycle"></i> ماستر ريم <span class="vip-badge">VIP</span></h1>
+        </div>
+        <nav class="main-nav">
+            <ul>
+                <li><a href="#" onclick="showSection('home')" class="nav-btn"><i class="fas fa-home"></i> الرئيسية</a></li>
+                <li><a href="#" onclick="showSection('bikes')" class="nav-btn"><i class="fas fa-biking"></i> صالة الدراجات</a></li>
+                <li><a href="#" onclick="showSection('parts')" class="nav-btn"><i class="fas fa-cogs"></i> قطع الغيار</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        
+        <div id="home-view" class="view-section active">
+            <section class="hero-section">
+                <div class="hero-content">
+                    <h2 class="glowing-text">انطلق كالبرق.. تملّك الطريق!</h2>
+                    <p class="hero-desc">في "ماستر ريم"، القوة تلتقي بالأناقة. أفخم الدراجات النارية في موريتانيا بأسعار لا تُنافس.</p>
+                    <div class="home-buttons">
+                        <button class="cta-button gold-btn" onclick="showSection('bikes')">استعرض الوحوش الحديدية <i class="fas fa-fire"></i></button>
+                    </div>
+                </div>
+            </section>
+            
+            <section class="features-grid">
+                <div class="feature-box">
+                    <i class="fas fa-crown"></i>
+                    <h3>فخامة الملوك</h3>
+                    <p>دراجات بتصاميم تخطف الأنفاس.</p>
+                </div>
+                <div class="feature-box">
+                    <i class="fas fa-shield-alt"></i>
+                    <h3>ضمان وصلابة</h3>
+                    <p>قطع غيار أصلية تعيش معك طويلاً.</p>
+                </div>
+                <div class="feature-box">
+                    <i class="fas fa-money-bill-wave"></i>
+                    <h3>الدفع بالأوقية</h3>
+                    <p>أسعار مدروسة تناسب الجميع.</p>
+                </div>
+            </section>
+        </div>
+
+        <div id="bikes-view" class="view-section" style="display: none;">
+            <div class="section-header">
+                <h2 class="section-title glowing-text">💎 معرض الدراجات الفاخرة</h2>
+                <p>اختر رفيق طريقك وتميز عن الجميع</p>
+            </div>
+            
+            <div class="products-list-grid" id="bikesGrid"></div>
+
+            <div class="divider-glow"></div>
+
+            <section class="add-product-admin" id="bikeAdminSection">
+                <h3 class="admin-title"><i class="fas fa-plus-circle"></i> إضافة دراجة جديدة (للمشرف)</h3>
+                <div class="admin-form">
+                    <input type="text" id="bikeName" placeholder="اسم الدراجة الفخم">
+                    <input type="number" id="bikePrice" placeholder="السعر (أوقية)">
+                    <textarea id="bikeDescription" placeholder="وصف تفصيلي ومزايا الدراجة" rows="3"></textarea>
+                    <input type="text" id="bikeImage" placeholder="رابط صورة الدراجة">
+                    <button onclick="addProduct('bike')" class="add-btn">نشر الدراجة <i class="fas fa-rocket"></i></button>
+                </div>
+            </section>
+        </div>
+
+        <div id="parts-view" class="view-section" style="display: none;">
+            <div class="section-header">
+                <h2 class="section-title glowing-text">⚙️ قسم قطع الغيار الأصلية</h2>
+                <p>كل ما تحتاجه لصيانة دراجتك بجودة عالية</p>
+            </div>
+
+            <div class="products-list-grid" id="partsGrid"></div>
+
+            <div class="divider-glow"></div>
+
+            <section class="add-product-admin" id="partAdminSection">
+                <h3 class="admin-title"><i class="fas fa-plus-circle"></i> إضافة قطعة غيار (للمشرف)</h3>
+                <div class="admin-form">
+                    <input type="text" id="partName" placeholder="اسم القطعة">
+                    <input type="number" id="partPrice" placeholder="السعر (أوقية)">
+                    <textarea id="partDescription" placeholder="وصف تفصيلي للقطعة وتوافقها" rows="3"></textarea>
+                    <input type="text" id="partImage" placeholder="رابط الصورة">
+                    <button onclick="addProduct('part')" class="add-btn">نشر القطعة <i class="fas fa-tools"></i></button>
+                </div>
+            </section>
+        </div>
+
+    </main>
+
+    <footer class="main-footer">
+        
+        <div class="footer-buttons">
+            <a href="https://wa.me/22233366620" target="_blank" class="contact-btn whatsapp-btn">
+                <i class="fab fa-whatsapp"></i> استفسار عبر الواتساب
+            </a>
+            <a href="https://maps.app.goo.gl/RMgar2UVanipyerW6" target="_blank" id="mapLinkBtn" class="contact-btn map-btn">
+                <i class="fas fa-map-marker-alt"></i> موقعنا الجغرافي
+            </a>
+            <a href="#" onclick="openAdminGate()" class="contact-btn admin-gate-btn">
+                <i class="fas fa-user-shield"></i> دخول المشرف
+            </a>
+        </div>
+        
+        <p>© 2025 ماستر ريم. <span style="color:#FFD700">السرعة. القوة. الفخامة.</span></p>
+    </footer>
+    
+    <div id="adminModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeAdminGate()">×</span>
+            <h3 class="admin-title" style="margin-bottom: 30px;"><i class="fas fa-lock"></i> بوابة دخول المشرف</h3>
+            <p style="color:#FFD700; margin-bottom: 20px;">أدخل كلمة مرور المشرف للوصول إلى أدوات الإضافة والحذف.</p>
+            <input type="password" id="adminPassword" placeholder="كلمة المرور" style="width: 80%; padding: 10px; border-radius: 5px; border: 1px solid #FFD700; margin-bottom: 20px;">
+            <button onclick="loginAdmin()" class="cta-button">دخول</button>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    
+    <script src="script.js"></script>
+</body>
+</html>
