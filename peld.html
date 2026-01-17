@@ -1,0 +1,732 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>لوحة الإدارة - نظام المتجر الموريتاني</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:system-ui,sans-serif;background:#0a0a1a;color:#fff;min-height:100vh}
+    .app{display:flex;min-height:100vh}
+    .sidebar{width:280px;background:rgba(255,255,255,.05);border-left:1px solid rgba(255,255,255,.1);padding:20px;position:fixed;height:100vh;overflow-y:auto}
+    .main{flex:1;margin-right:280px;padding:20px}
+    .logo{font-size:22px;font-weight:900;margin-bottom:20px;color:#0ff}
+    .menu{display:flex;flex-direction:column;gap:8px}
+    .menu button{width:100%;padding:14px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.03);color:#fff;border-radius:10px;cursor:pointer;font-size:14px;font-weight:700;text-align:right;transition:.2s}
+    .menu button:hover{background:rgba(255,255,255,.08);transform:translateY(-2px)}
+    .menu button.active{background:linear-gradient(135deg,rgba(0,255,255,.15),rgba(139,92,255,.15));border-color:#0ff}
+    .menu button.locked{border-color:#f90;background:rgba(255,153,0,.1)}
+    .card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:20px;margin-bottom:16px}
+    .row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+    .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+    h2{margin-bottom:16px;font-size:20px}
+    h3{margin-bottom:12px}
+    input,select{width:100%;padding:12px;border:1px solid rgba(255,255,255,.15);background:rgba(0,0,0,.3);color:#fff;border-radius:8px;font-size:14px}
+    input:focus,select:focus{outline:none;border-color:#0ff}
+    label{display:block;margin-bottom:6px;font-size:12px;color:rgba(255,255,255,.7)}
+    .btn{padding:12px 20px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;border-radius:8px;cursor:pointer;font-weight:700;transition:.2s}
+    .btn:hover{background:rgba(255,255,255,.1);transform:translateY(-1px)}
+    .btn.primary{background:linear-gradient(135deg,#8b5cf6,#0ff);border:none}
+    .btn.danger{background:#f43f5e;border:none}
+    .btn.warning{background:#f90;border:none}
+    .btn.sm{padding:8px 14px;font-size:12px}
+    .hidden{display:none!important}
+    .view{display:none}
+    .view.active{display:block}
+    .stat{text-align:center;padding:20px}
+    .stat .num{font-size:32px;font-weight:900;color:#0ff}
+    .stat .lbl{font-size:12px;color:rgba(255,255,255,.6);margin-top:4px}
+    table{width:100%;border-collapse:collapse}
+    th,td{padding:12px;text-align:right;border-bottom:1px solid rgba(255,255,255,.08)}
+    th{background:rgba(0,0,0,.2);font-size:12px}
+    .toast-box{position:fixed;bottom:20px;left:20px;right:20px;z-index:9999;pointer-events:none}
+    .toast{background:#22c55e;color:#fff;padding:14px;border-radius:10px;margin-top:8px;font-weight:700;pointer-events:none}
+    .toast.err{background:#f43f5e}
+    .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:9998;padding:20px}
+    .modal{background:#1a1a2e;border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:24px;max-width:600px;width:100%;max-height:90vh;overflow-y:auto}
+    .invoice-white{background:#fff;color:#222;padding:24px;border-radius:12px;font-family:'Courier New',monospace}
+    .invoice-white h2{text-align:center;border-bottom:2px solid #222;padding-bottom:10px;color:#222}
+    .invoice-white .meta{text-align:center;color:#666;font-size:12px;margin:10px 0}
+    .invoice-white .items{margin:16px 0}
+    .invoice-white .item{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px dashed #ccc}
+    .invoice-white .total{font-size:18px;font-weight:bold;text-align:left;margin-top:12px;padding-top:12px;border-top:2px solid #222}
+    .invoice-white .footer{text-align:center;margin-top:16px;font-size:11px;color:#888}
+    .cart-item{display:flex;justify-content:space-between;align-items:center;padding:12px;background:rgba(0,0,0,.2);border-radius:8px;margin-bottom:8px}
+    .low-stock{color:#f90;font-weight:bold}
+
+    /* Analytics */
+    .time-filter{display:flex;gap:8px;flex-wrap:wrap}
+    .time-filter button{padding:8px 14px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;border-radius:999px;cursor:pointer;font-size:12px;transition:.2s}
+    .time-filter button:hover,.time-filter button.active{background:linear-gradient(135deg,#8b5cf6,#0ff);border-color:transparent}
+
+    .stat-card{background:linear-gradient(135deg,rgba(255,255,255,.08),rgba(255,255,255,.02));border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:18px;text-align:center}
+    .stat-card .v{font-size:26px;font-weight:900;margin-top:8px}
+    .stat-card .l{font-size:12px;color:rgba(255,255,255,.6);margin-top:4px}
+    .v.green{color:#22c55e}
+    .v.yellow{color:#fbbf24}
+    .v.red{color:#f43f5e}
+    .v.cyan{color:#0ff}
+
+    .chart-wrap{background:linear-gradient(180deg,rgba(10,10,26,.9),rgba(20,20,40,.95));border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:18px;margin-top:16px}
+    .chart-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+    .legend{display:flex;gap:10px;flex-wrap:wrap}
+    .legend span{display:flex;align-items:center;gap:8px;font-size:12px;padding:6px 10px;background:rgba(255,255,255,.05);border-radius:999px}
+    .dot{width:10px;height:10px;border-radius:50%}
+    .dot.g{background:#22c55e}
+    .dot.y{background:#fbbf24}
+    .dot.r{background:#f43f5e}
+    canvas{width:100%;height:320px;background:rgba(0,0,0,.25);border-radius:14px;display:block}
+
+    @media(max-width:1200px){.grid4{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:768px){.sidebar{transform:translateX(100%);z-index:100}.sidebar.open{transform:translateX(0)}.main{margin-right:0}.grid4,.grid3,.grid2{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+
+<div class="toast-box" id="toasts"></div>
+
+<div class="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="logo">🏪 لوحة الإدارة</div>
+    <nav class="menu" id="menu">
+      <button data-v="dashboard" class="active">الرئيسية</button>
+      <button data-v="products">المنتجات</button>
+      <button data-v="customers">👥 إدارة العملاء</button>
+      <button data-v="scan">نقطة البيع</button>
+      <button data-v="debts">المديونيات</button>
+      <button data-v="invoices">الفواتير</button>
+      <button data-v="analytics" class="locked">🔒 مراقبة النشاط التجاري</button>
+      <button data-v="settings">الإعدادات</button>
+    </nav>
+    <div style="margin-top:auto;padding-top:20px;border-top:1px solid rgba(255,255,255,.1)">
+      <div style="font-size:12px;color:rgba(255,255,255,.5)" id="userInfo">غير مسجل</div>
+      <button class="btn sm" style="width:100%;margin-top:10px" id="logoutBtn">خروج</button>
+    </div>
+  </aside>
+
+  <main class="main" id="mainContent">
+
+    <div class="view active" id="v-login">
+      <div class="card" style="max-width:400px;margin:60px auto">
+        <h2>تسجيل الدخول</h2>
+        <div style="margin-bottom:12px"><label>اسم المستخدم</label><input id="inUser" value="admin"></div>
+        <div style="margin-bottom:12px"><label>كلمة المرور</label><input id="inPass" type="password" value="admin123"></div>
+        <div class="row">
+          <button class="btn primary" id="loginBtn">دخول</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="view" id="v-dashboard">
+      <h2>الرئيسية</h2>
+      <div class="grid2">
+        <div class="card stat"><div class="num" id="dSales">0</div><div class="lbl">مبيعات اليوم</div></div>
+        <div class="card stat"><div class="num" id="dCount">0</div><div class="lbl">عدد العمليات</div></div>
+      </div>
+      <div class="card stat"><div class="num" id="dLow">0</div><div class="lbl">منتجات أوشكت على النفاد</div></div>
+    </div>
+
+    <div class="view" id="v-products">
+      <div class="row" style="margin-bottom:16px"><h2 style="margin:0">المنتجات</h2><button class="btn primary sm" id="addProdBtn">+ إضافة منتج</button></div>
+      <div class="card"><table><thead><tr><th>الاسم</th><th>SKU</th><th>شراء</th><th>بيع</th><th>الكمية</th><th>إجراء</th></tr></thead><tbody id="prodTable"></tbody></table></div>
+    </div>
+
+    <div class="view" id="v-customers">
+      <div class="row" style="margin-bottom:16px"><h2 style="margin:0">إدارة العملاء</h2><button class="btn primary sm" id="addCustBtn">+ إضافة عميل جديد</button></div>
+      <div class="card"><table><thead><tr><th>الاسم</th><th>رقم الهاتف</th><th>إجراء</th></tr></thead><tbody id="custTable"></tbody></table></div>
+    </div>
+
+    <div class="view" id="v-scan">
+      <h2>نقطة البيع</h2>
+      <div class="grid2">
+        <div class="card">
+          <div style="margin-bottom:12px"><label>كود المنتج (QR/SKU)</label><input id="scanCode" placeholder="اكتب الكود واضغط Enter"></div>
+          <div style="margin-bottom:12px"><label>طريقة الدفع</label>
+            <select id="payMethod">
+              <option value="cash">كاش (نقدي)</option>
+              <option value="bankily">بنكيلي (Bankily)</option>
+              <option value="masrvi">مصرفي (Masrvi)</option>
+              <option value="sadad">سداد (Sadad)</option>
+              <option value="bimpay">بيم بآي (BimPay)</option>
+              <option value="click">كليك (Click)</option>
+              <option value="gazapay">غزة بي (Gaza Pay)</option>
+              <option value="debt">دين (مؤجل)</option>
+            </select>
+          </div>
+          <div style="margin-bottom:12px"><label>العميل (في حال الدين أو التحويل)</label><select id="custSelect"><option value="">— اختر العميل —</option></select></div>
+          <div class="row"><button class="btn primary" id="addToCartBtn">إضافة للسلة</button><button class="btn" id="clearCartBtn">تفريغ</button></div>
+        </div>
+        <div class="card">
+          <h3>السلة</h3>
+          <div id="cartItems"></div>
+          <div style="font-size:20px;font-weight:900;margin-top:12px">الإجمالي: <span id="cartTotal">0.00</span></div>
+          <button class="btn primary" style="width:100%;margin-top:12px" id="confirmSaleBtn">✅ تأكيد البيع</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="view" id="v-debts">
+      <h2>المديونيات</h2>
+      <div class="card"><table><thead><tr><th>العميل</th><th>المبلغ</th><th>المتبقي</th><th>الحالة</th><th>إجراء</th></tr></thead><tbody id="debtTable"></tbody></table></div>
+    </div>
+
+    <div class="view" id="v-invoices">
+      <h2>الفواتير</h2>
+      <div class="card"><table><thead><tr><th>رقم</th><th>التاريخ</th><th>الإجمالي</th><th>الدفع</th><th>إجراء</th></tr></thead><tbody id="invTable"></tbody></table></div>
+    </div>
+
+    <div class="view" id="v-analytics">
+      <h2>🔒 مراقبة النشاط التجاري</h2>
+
+      <div id="analyticsLock" class="card" style="text-align:center;padding:40px">
+        <p style="margin-bottom:16px">أدخل الكود للوصول:</p>
+        <input id="analyticsCode" type="password" placeholder="****" style="max-width:220px;text-align:center;font-size:24px;letter-spacing:8px">
+        <button class="btn primary" style="margin-top:16px" id="unlockAnalyticsBtn">فتح</button>
+      </div>
+
+      <div id="analyticsContent" class="hidden">
+
+        <div class="card">
+          <div class="row" style="justify-content:space-between">
+            <h3 style="margin:0">الفترة</h3>
+            <div class="time-filter" id="periodBtns">
+              <button class="active" data-period="7">7 أيام</button>
+              <button data-period="14">14 يوم</button>
+              <button data-period="30">30 يوم</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid4">
+          <div class="stat-card">
+            <div class="l">الأرباح (الفترة)</div>
+            <div class="v green" id="aProfit">0.00</div>
+          </div>
+          <div class="stat-card">
+            <div class="l">المبيعات (الفترة)</div>
+            <div class="v yellow" id="aSales">0.00</div>
+          </div>
+          <div class="stat-card">
+            <div class="l">عدد الفواتير</div>
+            <div class="v cyan" id="aInvCount">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="l">أوشكت على النفاد</div>
+            <div class="v red" id="aLowCount">0</div>
+          </div>
+        </div>
+
+        <div class="chart-wrap">
+          <div class="chart-head">
+            <div style="font-weight:900">📈 الرسم البياني (صعود/نزول)</div>
+            <div class="legend">
+              <span><i class="dot g"></i> الأرباح</span>
+              <span><i class="dot y"></i> المبيعات</span>
+              <span><i class="dot r"></i> نقص المخزون</span>
+            </div>
+          </div>
+          <canvas id="analyticsChart" width="1200" height="320"></canvas>
+          <div style="margin-top:10px;font-size:12px;color:rgba(255,255,255,.55)">
+            * الأخضر = الأرباح، الأصفر = المبيعات، الأحمر = عدد المنتجات التي تحت حد التنبيه.
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:16px">
+          <h3>📉 منتجات أوشكت على النفاد</h3>
+          <div id="lowStockList"></div>
+        </div>
+
+        <div class="card" style="margin-top:16px">
+          <h3>📊 نشاط المبيعات اليوم</h3>
+          <div id="activityList"></div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="view" id="v-settings">
+      <h2>الإعدادات</h2>
+      <div class="card"><button class="btn danger" id="resetBtn">🗑️ مسح جميع البيانات</button></div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+(function(){
+  const KEY = "pos_data_v5";
+  let S = {user:null,products:[],customers:[],invoices:[],debts:[],cart:[]};
+  let analyticsDays = 7;
+
+  const $=s=>document.querySelector(s);
+  const $$=s=>[...document.querySelectorAll(s)];
+
+  function save(){localStorage.setItem(KEY,JSON.stringify(S))}
+  function load(){try{const d=JSON.parse(localStorage.getItem(KEY));if(d)S=d}catch{}}
+
+  function toast(m,e){
+    const t=document.createElement("div");
+    t.className="toast"+(e?" err":"");
+    t.textContent=m;
+    $("#toasts").appendChild(t);
+    setTimeout(()=>t.remove(),3000)
+  }
+
+  function money(n){return Number(n||0).toFixed(2)}
+
+  function showView(v){
+    $$(".view").forEach(el=>el.classList.remove("active"));
+    const el=$("#v-"+v); if(el) el.classList.add("active");
+    $$(".menu button").forEach(b=>b.classList.toggle("active",b.dataset.v===v));
+
+    if(v==="dashboard")renderDash();
+    if(v==="products")renderProds();
+    if(v==="customers")renderCusts();
+    if(v==="scan")renderScan();
+    if(v==="debts")renderDebts();
+    if(v==="invoices")renderInvs();
+    if(v==="analytics"){
+      $("#analyticsLock").classList.remove("hidden");
+      $("#analyticsContent").classList.add("hidden");
+    }
+  }
+
+  function renderDash(){
+    const today=new Date().toDateString();
+    const todayInvs=S.invoices.filter(i=>new Date(i.date).toDateString()===today);
+    const total=todayInvs.reduce((s,i)=>s+i.total,0);
+    $("#dSales").textContent=money(total);
+    $("#dCount").textContent=todayInvs.length;
+    $("#dLow").textContent=S.products.filter(p=>p.qty<=p.low).length;
+  }
+
+  function renderProds(){
+    $("#prodTable").innerHTML=S.products.map(p=>`<tr>
+      <td>${p.name}</td><td>${p.sku}</td><td>${money(p.buy)}</td><td>${money(p.sell)}</td>
+      <td class="${p.qty<=p.low?"low-stock":""}">${p.qty}</td>
+      <td class="row">
+        <button class="btn sm warning" onclick="editProd(${p.id})">تعديل</button>
+        <button class="btn sm danger" onclick="deleteProd(${p.id})">حذف</button>
+      </td>
+    </tr>`).join("")||"<tr><td colspan='6'>لا توجد منتجات</td></tr>";
+  }
+
+  window.editProd=function(id){
+    const p=S.products.find(x=>x.id===id); if(!p) return;
+    const name=prompt("تعديل الاسم:", p.name); if(name===null) return;
+    const sku=prompt("تعديل SKU:", p.sku);
+    const buy=Number(prompt("تعديل سعر الشراء:", p.buy));
+    const sell=Number(prompt("تعديل سعر البيع:", p.sell));
+    const qty=Number(prompt("تعديل الكمية:", p.qty));
+    const low=Number(prompt("حد التنبيه:", p.low));
+    
+    Object.assign(p, {name, sku, buy, sell, qty, low});
+    save(); renderProds(); toast("تم التحديث");
+  }
+
+  window.deleteProd=function(id){
+    if(confirm("حذف المنتج؟")){
+      S.products=S.products.filter(x=>x.id!==id);
+      save();renderProds()
+    }
+  };
+
+  function renderCusts(){
+    $("#custTable").innerHTML=S.customers.map(c=>`<tr>
+      <td>${c.name}</td><td>${c.phone||'---'}</td>
+      <td class="row">
+        <button class="btn sm warning" onclick="editCust(${c.id})">تعديل</button>
+        <button class="btn sm danger" onclick="deleteCust(${c.id})">حذف</button>
+      </td>
+    </tr>`).join("")||"<tr><td colspan='3'>لا يوجد عملاء</td></tr>";
+  }
+
+  window.editCust=function(id){
+    const c=S.customers.find(x=>x.id===id); if(!c) return;
+    const name=prompt("تعديل اسم العميل:", c.name); if(name===null) return;
+    const phone=prompt("تعديل رقم الهاتف:", c.phone);
+    
+    Object.assign(c, {name, phone});
+    save(); renderCusts(); toast("تم التحديث");
+  }
+
+  window.deleteCust=function(id){
+    if(confirm("حذف العميل؟")){
+      S.customers=S.customers.filter(x=>x.id!==id);
+      save();renderCusts()
+    }
+  };
+
+  function renderScan(){
+    $("#custSelect").innerHTML=`<option value="">— اختر العميل —</option>`+S.customers.map(c=>`<option value="${c.id}">${c.name}</option>`).join("");
+    renderCart();
+  }
+
+  function renderCart(){
+    $("#cartItems").innerHTML=S.cart.map((it,i)=>`<div class="cart-item">
+      <div><b>${it.name}</b><br><small>${it.qty} × ${money(it.sell)}</small></div>
+      <div><button class="btn sm" onclick="removeCart(${i})">حذف</button></div>
+    </div>`).join("")||"<p style='color:rgba(255,255,255,.5)'>السلة فارغة</p>";
+    $("#cartTotal").textContent=money(S.cart.reduce((s,it)=>s+it.qty*it.sell,0));
+  }
+
+  window.removeCart=function(i){S.cart.splice(i,1);save();renderCart()};
+
+  function addToCart(){
+    const code=$("#scanCode").value.trim().toUpperCase();
+    if(!code)return toast("أدخل الكود",true);
+    const p=S.products.find(x=>String(x.sku||"").toUpperCase()===code);
+    if(!p)return toast("منتج غير موجود",true);
+    if(p.qty<1)return toast("لا توجد كمية",true);
+
+    const ex=S.cart.find(x=>x.id===p.id);
+    if(ex){ if(ex.qty>=p.qty) return toast("لا توجد كمية كافية",true); ex.qty++; }
+    else S.cart.push({id:p.id,name:p.name,qty:1,sell:p.sell,buy:p.buy});
+
+    $("#scanCode").value="";
+    save();renderCart();toast("تمت الإضافة");
+  }
+
+  function confirmSale(){
+    if(!S.cart.length)return toast("السلة فارغة",true);
+    const pay=$("#payMethod").value;
+    const cust=$("#custSelect").value;
+
+    if(pay !== "cash" && !cust) return toast("يرجى اختيار العميل لهذه العملية", true);
+
+    const total=S.cart.reduce((s,it)=>s+it.qty*it.sell,0);
+    const profit=S.cart.reduce((s,it)=>s+(it.sell-it.buy)*it.qty,0);
+
+    S.cart.forEach(it=>{
+      const p=S.products.find(x=>x.id===it.id);
+      if(p) p.qty-=it.qty
+    });
+
+    const inv={id:Date.now(),date:new Date().toISOString(),items:[...S.cart],total,profit,pay,cust:cust||null};
+    S.invoices.unshift(inv);
+
+    if(pay==="debt"){
+      const c=S.customers.find(x=>x.id==cust);
+      S.debts.unshift({id:Date.now(),cust:c?c.name:"غير معروف",amount:total,remaining:total,ref:inv.id});
+    }
+
+    S.cart=[];
+    save();
+    showInvoiceModal(inv);
+    renderCart();renderDash();
+    toast("تم تسجيل البيع بنجاح");
+  }
+
+  function showInvoiceModal(inv){
+    const c=S.customers.find(x=>x.id==inv.cust);
+    const d=new Date(inv.date);
+    const dateStr=d.toLocaleDateString("ar-SA")+" "+d.toLocaleTimeString("ar-SA");
+    const html=`<div class="modal-bg" onclick="if(event.target===this)this.remove()">
+      <div class="modal">
+        <div class="invoice-white">
+          <h2>🧾 فاتورة مبيعات</h2>
+          <div class="meta">رقم: ${inv.id}<br>${dateStr}</div>
+          <div class="items">${inv.items.map(it=>`<div class="item"><span>${it.name} × ${it.qty}</span><span>${money(it.qty*it.sell)}</span></div>`).join("")}</div>
+          <div class="total">الإجمالي: ${money(inv.total)} MRU</div>
+          <div class="meta">الدفع: ${inv.pay}${c?" | العميل: "+c.name:""}</div>
+          <div class="footer">شكراً لتعاملكم معنا ❤️</div>
+        </div>
+        <div style="text-align:center;margin-top:16px">
+          <button class="btn" onclick="this.closest('.modal-bg').remove()">إغلاق</button>
+          <button class="btn primary" onclick="window.print()">طباعة</button>
+        </div>
+      </div>
+    </div>`;
+    document.body.insertAdjacentHTML("beforeend",html);
+  }
+
+  function renderDebts(){
+    $("#debtTable").innerHTML=S.debts.map(d=>`<tr>
+      <td>${d.cust}</td><td>${money(d.amount)}</td><td>${money(d.remaining)}</td>
+      <td>${d.remaining<=0?"مسدد":"مفتوح"}</td>
+      <td class="row">
+        <button class="btn sm warning" onclick="editDebt(${d.id})">تعديل</button>
+        <button class="btn sm" onclick="payDebt(${d.id})">سداد</button>
+      </td>
+    </tr>`).join("")||"<tr><td colspan='5'>لا توجد ديون</td></tr>";
+  }
+
+  window.editDebt=function(id){
+    const d=S.debts.find(x=>x.id===id); if(!d) return;
+    const amount=Number(prompt("تعديل إجمالي الدين:", d.amount)); if(isNaN(amount)) return;
+    const remaining=Number(prompt("تعديل المبلغ المتبقي:", d.remaining));
+    
+    Object.assign(d, {amount, remaining});
+    save(); renderDebts(); toast("تم التحديث");
+  }
+
+  window.payDebt=function(id){
+    const d=S.debts.find(x=>x.id===id); if(!d) return;
+    const a=prompt("مبلغ السداد:",d.remaining);
+    if(a!==null){
+      d.remaining=Math.max(0,d.remaining-Number(a));
+      save();renderDebts();toast("تم السداد")
+    }
+  };
+
+  function renderInvs(){
+    $("#invTable").innerHTML=S.invoices.map(i=>`<tr>
+      <td>${i.id}</td><td>${new Date(i.date).toLocaleDateString("ar-SA")}</td>
+      <td>${money(i.total)}</td><td>${i.pay}</td>
+      <td><button class="btn sm" onclick="viewInv(${i.id})">عرض</button></td>
+    </tr>`).join("")||"<tr><td colspan='5'>لا توجد فواتير</td></tr>";
+  }
+
+  window.viewInv=function(id){
+    const inv=S.invoices.find(x=>x.id===id);
+    if(inv)showInvoiceModal(inv);
+  };
+
+  function unlockAnalytics(){
+  if($("#analyticsCode").value==="2220"){
+      $("#analyticsLock").classList.add("hidden");
+      $("#analyticsContent").classList.remove("hidden");
+      renderAnalytics();
+      toast("تم فتح مراقبة النشاط");
+    } else {
+      toast("الكود غير صحيح",true);
+    }
+  }
+
+  function getLastNDaysLabels(n){
+    const labels=[];
+    const now=new Date();
+    for(let i=n-1;i>=0;i--){
+      const d=new Date(now);
+      d.setDate(d.getDate()-i);
+      labels.push(d);
+    }
+    return labels;
+  }
+
+  function sumInvoicesForDate(d){
+    const ds=d.toDateString();
+    const invs=S.invoices.filter(i=>new Date(i.date).toDateString()===ds);
+    const sales=invs.reduce((s,i)=>s+i.total,0);
+    const profit=invs.reduce((s,i)=>s+(i.profit||0),0);
+    return {sales,profit,count:invs.length};
+  }
+
+  function drawLineChart(canvas, series, labels){
+    const ctx=canvas.getContext("2d");
+    const W=canvas.clientWidth || canvas.width;
+    const H=320;
+
+    const dpr=window.devicePixelRatio||1;
+    canvas.width=Math.floor(W*dpr);
+    canvas.height=Math.floor(H*dpr);
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+
+    const w=W, h=H;
+    const pad={l:55,r:18,t:18,b:38};
+    const cw=w-pad.l-pad.r;
+    const ch=h-pad.t-pad.b;
+
+    ctx.clearRect(0,0,w,h);
+
+    ctx.strokeStyle="rgba(255,255,255,.08)";
+    ctx.lineWidth=1;
+    for(let i=0;i<=5;i++){
+      const y=pad.t+(ch/5)*i;
+      ctx.beginPath();
+      ctx.moveTo(pad.l,y);
+      ctx.lineTo(w-pad.r,y);
+      ctx.stroke();
+    }
+
+    const allVals=series.flatMap(s=>s.data);
+    const max=Math.max(...allVals, 1);
+    const min=Math.min(...allVals, 0);
+
+    const xAt=i=>pad.l + (cw/(labels.length-1 || 1))*i;
+    const yAt=v=>{
+      const t=(v-min)/(max-min || 1);
+      return pad.t + ch - t*ch;
+    };
+
+    ctx.fillStyle="rgba(255,255,255,.5)";
+    ctx.font="11px system-ui";
+    ctx.textAlign="right";
+    ctx.fillText(String(max.toFixed(0)), pad.l-8, pad.t+10);
+    ctx.fillText(String(min.toFixed(0)), pad.l-8, pad.t+ch);
+
+    ctx.textAlign="center";
+    labels.forEach((d,i)=>{
+      const x=xAt(i);
+      const txt=(d.getDate())+"/"+(d.getMonth()+1);
+      ctx.fillText(txt, x, h-14);
+    });
+
+    series.forEach(s=>{
+      ctx.beginPath();
+      s.data.forEach((v,i)=>{
+        const x=xAt(i), y=yAt(v);
+        if(i===0) ctx.moveTo(x,y);
+        else ctx.lineTo(x,y);
+      });
+      ctx.strokeStyle=s.color;
+      ctx.lineWidth=3;
+      ctx.lineJoin="round";
+      ctx.lineCap="round";
+      ctx.shadowColor=s.color;
+      ctx.shadowBlur=10;
+      ctx.stroke();
+      ctx.shadowBlur=0;
+
+      s.data.forEach((v,i)=>{
+        const x=xAt(i), y=yAt(v);
+        ctx.beginPath();
+        ctx.arc(x,y,4,0,Math.PI*2);
+        ctx.fillStyle=s.color;
+        ctx.fill();
+        ctx.strokeStyle="#0a0a1a";
+        ctx.lineWidth=2;
+        ctx.stroke();
+      });
+    });
+  }
+
+  function renderAnalytics(){
+    const labels=getLastNDaysLabels(analyticsDays);
+    const salesData=[];
+    const profitData=[];
+    const lowData=[];
+
+    labels.forEach(d=>{
+      const {sales,profit}=sumInvoicesForDate(d);
+      salesData.push(sales);
+      profitData.push(profit);
+      lowData.push(S.products.filter(p=>p.qty<=p.low).length);
+    });
+
+    const rangeInvs=S.invoices.filter(i=>{
+      const dd=new Date(i.date);
+      return dd>=labels[0] && dd<=labels[labels.length-1];
+    });
+
+    const totalSales=rangeInvs.reduce((s,i)=>s+i.total,0);
+    const totalProfit=rangeInvs.reduce((s,i)=>s+(i.profit||0),0);
+
+    $("#aSales").textContent=money(totalSales);
+    $("#aProfit").textContent=money(totalProfit);
+    $("#aInvCount").textContent=rangeInvs.length;
+    $("#aLowCount").textContent=S.products.filter(p=>p.qty<=p.low).length;
+
+    const lowStock=S.products.filter(p=>p.qty<=p.low);
+    $("#lowStockList").innerHTML=lowStock.length
+      ? lowStock.map(p=>`<div class="cart-item"><span>${p.name}</span><span class="low-stock">متبقي: ${p.qty}</span></div>`).join("")
+      : "<p style='color:#22c55e'>✅ جميع المنتجات بكمية كافية</p>";
+
+    const todayStr=new Date().toDateString();
+    const todayInvs=S.invoices.filter(i=>new Date(i.date).toDateString()===todayStr);
+    $("#activityList").innerHTML=todayInvs.length
+      ? todayInvs.slice(0,20).map(i=>`<div class="cart-item">
+          <div><b>فاتورة #${i.id}</b><br><small>${i.items.map(x=>x.name+"×"+x.qty).join(", ")}</small></div>
+          <div style="text-align:left"><b>${money(i.total)}</b><br><small style="color:#22c55e">ربح: ${money(i.profit||0)}</small></div>
+        </div>`).join("")
+      : "<p style='color:rgba(255,255,255,.5)'>لا توجد مبيعات اليوم</p>";
+
+    const canvas=$("#analyticsChart");
+    drawLineChart(canvas, [
+      {name:"الأرباح", color:"#22c55e", data:profitData},
+      {name:"المبيعات", color:"#fbbf24", data:salesData},
+      {name:"نقص المخزون", color:"#f43f5e", data:lowData}
+    ], labels);
+  }
+
+  function login(){
+    const u=$("#inUser").value.trim();
+    const p=$("#inPass").value;
+    if(u==="admin"&&p==="admin123"){
+      S.user={name:u};save();
+      $("#userInfo").textContent="مرحباً "+u;
+      showView("dashboard");
+      toast("تم تسجيل الدخول");
+    } else {
+      toast("بيانات خاطئة",true);
+    }
+  }
+
+  function logout(){
+    S.user=null;S.cart=[];save();
+    $("#userInfo").textContent="غير مسجل";
+    showView("login");
+    toast("تم الخروج");
+  }
+
+  function addProduct(){
+    const name=prompt("اسم المنتج:"); if(!name) return;
+    const sku=prompt("SKU:"); if(!sku) return;
+    const buy=Number(prompt("سعر الشراء:",0));
+    const sell=Number(prompt("سعر البيع:",0));
+    const qty=Number(prompt("الكمية:",0));
+    const low=Number(prompt("حد التنبيه:",5));
+    S.products.push({id:Date.now(),name,sku,buy,sell,qty,low});
+    save();renderProds();toast("تمت الإضافة");
+  }
+
+  function addCustomer(){
+    const name=prompt("اسم العميل:"); if(!name) return;
+    const phone=prompt("رقم الهاتف:");
+    S.customers.push({id:Date.now(),name,phone});
+    save();renderCusts();toast("تمت إضافة العميل");
+  }
+
+  function init(){
+    load();
+    if(S.user){
+      $("#userInfo").textContent="مرحباً "+S.user.name;
+      showView("dashboard");
+    } else {
+      showView("login");
+    }
+
+    $("#menu").addEventListener("click", (e)=>{
+      const b=e.target.closest("button[data-v]");
+      if(!b) return;
+      if(!S.user && b.dataset.v!=="login") return toast("سجل دخول أولاً",true);
+      showView(b.dataset.v);
+    });
+
+    $("#loginBtn").addEventListener("click", login);
+    $("#logoutBtn").addEventListener("click", logout);
+    $("#addProdBtn").addEventListener("click", addProduct);
+    $("#addCustBtn").addEventListener("click", addCustomer);
+    $("#addToCartBtn").addEventListener("click", addToCart);
+    $("#scanCode").addEventListener("keydown",(e)=>{if(e.key==="Enter") addToCart()});
+    $("#clearCartBtn").addEventListener("click", ()=>{S.cart=[];save();renderCart();toast("تم التفريغ")});
+    $("#confirmSaleBtn").addEventListener("click", confirmSale);
+    $("#unlockAnalyticsBtn").addEventListener("click", unlockAnalytics);
+    $("#analyticsCode").addEventListener("keydown",(e)=>{if(e.key==="Enter") unlockAnalytics()});
+    $("#resetBtn").addEventListener("click", ()=>{if(confirm("متأكد من حذف كل البيانات؟")){localStorage.removeItem(KEY);location.reload()}});
+
+    $("#periodBtns").addEventListener("click",(e)=>{
+      const b=e.target.closest("button[data-period]");
+      if(!b) return;
+      $$("#periodBtns button").forEach(x=>x.classList.remove("active"));
+      b.classList.add("active");
+      analyticsDays = Number(b.dataset.period) || 7;
+      if(!$("#analyticsContent").classList.contains("hidden")) renderAnalytics();
+    });
+
+    window.addEventListener("resize", ()=>{
+      if($("#v-analytics").classList.contains("active") && !$("#analyticsContent").classList.contains("hidden")){
+        renderAnalytics();
+      }
+    });
+  }
+
+  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
+})();
+</script>
+
+</body>
+</html>
